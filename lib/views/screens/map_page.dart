@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'driving_page.dart';
+import 'package:flutter_application_4/views/screens/location_history_screen.dart';
 
 class MapPage extends StatefulWidget {
-  const MapPage({super.key});
+  const MapPage({super.key, required List<Map<String, Object>> employeeData, required String employeeId});
 
   @override
-  // ignore: library_private_types_in_public_api
   _MapPageState createState() => _MapPageState();
 }
 
@@ -14,43 +15,30 @@ class _MapPageState extends State<MapPage> {
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
-  }
-
-  void _showHistoryPage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const HistoryPage()),
-    );
-  }
-
-  void _showDrivingPage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const DrivingPage()),
-    );
-  }
-
-  void _showLocationPage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const LocationPage()),
+    mapController.animateCamera(
+      CameraUpdate.newLatLng(const LatLng(13.7563, 100.5018)), // พิกัดกรุงเทพ
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = const Color.fromARGB(255, 71, 124, 168);
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.grey[400], // ใช้สีหลักของแอป
-        elevation: 0, // ลบเงาของ AppBar
-        title: const Text(
-          'Map Page',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        elevation: 0,
+        backgroundColor: isDarkMode ? Colors.white : primaryColor,
+        title: Text(
+          'Map',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: isDarkMode ? Colors.black : Colors.white,
+              ), // ใช้สไตล์จาก ThemeData
         ),
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: Icon(Icons.close, color: isDarkMode ? Colors.black : Colors.white),
           onPressed: () {
-            Navigator.pop(context); // ปิดหน้า MapPage
+            Navigator.pop(context);
           },
         ),
       ),
@@ -72,25 +60,50 @@ class _MapPageState extends State<MapPage> {
           ),
           Align(
             alignment: Alignment.bottomCenter,
-            child: Padding(
+            child: Container(
               padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              decoration: BoxDecoration(
+                color: isDarkMode ? Colors.black : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    spreadRadius: 5,
+                    blurRadius: 7,
+                    offset: const Offset(0, -3),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  FloatingActionButton(
-                    onPressed: _showHistoryPage,
-                    backgroundColor: Colors.grey[400], // ใช้สีหลักของแอป
-                    child: const Icon(Icons.history),
+                  const SizedBox(height: 8),
+                  Text(
+                    '2XFX+C65 ตำบล กำแพงแสน อำเภอ กำแพงแสน นครปฐม',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: isDarkMode ? Colors.white : Colors.black,
+                        ), // ใช้สไตล์จาก ThemeData
                   ),
-                  FloatingActionButton(
-                    onPressed: _showDrivingPage,
-                    backgroundColor: Colors.grey[400], // ใช้สีหลักของแอป
-                    child: const Icon(Icons.directions_car),
-                  ),
-                  FloatingActionButton(
-                    onPressed: _showLocationPage,
-                    backgroundColor: Colors.grey[400], // ใช้สีหลักของแอป
-                    child: const Icon(Icons.my_location),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildInfoButton('ประวัติ', onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LocationHistoryScreen(employeeId: 'employeeId'),
+                          ),
+                        );
+                      }),
+                      _buildInfoButton('การขับขี่', onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const DrivingPage()),
+                        );
+                      }),
+                      _buildInfoButton('แชร์'),
+                    ],
                   ),
                 ],
               ),
@@ -100,41 +113,22 @@ class _MapPageState extends State<MapPage> {
       ),
     );
   }
-}
 
-// ตัวอย่างหน้าจอใหม่สำหรับการทดสอบ
-class HistoryPage extends StatelessWidget {
-  const HistoryPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('History Page')),
-      body: const Center(child: Text('History Page Content')),
-    );
-  }
-}
-
-class DrivingPage extends StatelessWidget {
-  const DrivingPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Driving Page')),
-      body: const Center(child: Text('Driving Page Content')),
-    );
-  }
-}
-
-class LocationPage extends StatelessWidget {
-  const LocationPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Location Page')),
-      body: const Center(child: Text('Location Page Content')),
+  Widget _buildInfoButton(String label, {VoidCallback? onPressed}) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = const Color.fromARGB(255, 71, 124, 168);
+    
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        textStyle: Theme.of(context).textTheme.labelLarge, // ใช้สไตล์จาก ThemeData
+      ),
+      onPressed: onPressed ?? () {
+        // เพิ่มฟังก์ชันสำหรับปุ่มที่ไม่ได้กำหนด
+      },
+      child: Text(label),
     );
   }
 }

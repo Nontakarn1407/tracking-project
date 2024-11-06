@@ -17,7 +17,7 @@ class LocationHistoryScreen extends StatefulWidget {
 class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
   List locationHistory = [];
   UserModel userModel = UserModel();
-  List<Marker> markerEmployees = <Marker>[];
+  List<Marker> markerEmployees = [];
 
   @override
   void initState() {
@@ -25,26 +25,26 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
     getEmployeeLocationHistory();
   }
 
-  void getEmployeeLocationHistory() async {
-    List locations = await userModel.getLocationHistoryByUserId(widget.employeeId);
+void getEmployeeLocationHistory() async {
+  List locations = await userModel.getLocationHistoryByUserId(widget.employeeId);
 
-    for (var location in locations) {
-      markerEmployees.add(
-        Marker(
-          markerId: MarkerId(location['id']),
-          position: LatLng(location['latitude'], location['longitude']),
-          infoWindow: InfoWindow(
-            title: location['status'],
-            snippet: timeStampToString(location['createdAt']),
-          ),
+  setState(() {
+    markerEmployees = locations.map((location) {
+      return Marker(
+        markerId: MarkerId(location['id']),
+        position: LatLng(location['latitude'], location['longitude']),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed), // ตั้งค่าให้หมุดเป็นสีแดง
+        infoWindow: InfoWindow(
+          title: location['status'],
+          snippet: timeStampToString(location['createdAt']),
         ),
       );
-    }
+    }).toList();
 
-    setState(() {
-      locationHistory = locations;
-    });
-  }
+    locationHistory = locations;
+  });
+}
+
 
   String timeStampToString(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
@@ -79,7 +79,7 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Location History',
+          'ประวัติตำแหน่ง',
           style: TextStyle(color: isDarkMode ? Colors.black : Colors.white),
         ),
         iconTheme: IconThemeData(color: isDarkMode ? Colors.black : Colors.white),
@@ -116,7 +116,7 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
                           target: LatLng(13.736717, 100.523186),
                           zoom: 12,
                         ),
-                  markers: Set<Marker>.of(markerEmployees),
+                  markers: markerEmployees.toSet(), // แปลงเป็น Set<Marker> ด้วย toSet()
                 ),
               ),
             ),
